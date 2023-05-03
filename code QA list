@@ -2,33 +2,109 @@ from flask import Flask, render_template, request
 import plotly.graph_objs as go
 import plotly.io as pio
 import pandas as pd
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIntValidator
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QTableWidget, QTableWidgetItem, QHeaderView
+import pandas as pd
+import plotly.graph_objs as go
+import plotly.io as pio
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    if request.method == 'POST':
-        # Получаем данные из формы
-        passed = request.form['passed']
-        blocked = request.form['blocked']
-        failed = request.form['failed']
-        no_tested = request.form['no_tested']
+@app.route('/', methods=['POST'])
+def home_post():
+    passed = request.form['passed']
+    blocked = request.form['blocked']
+    failed = request.form['failed']
+    no_tested = request.form['no_tested']
 
-        # Агрегируем данные
+    
+    data = {'Status': ['Passed', 'Blocked', 'Failed', 'Not Tested'], 'Count': [passed, blocked, failed, no_tested]}
+    df = pd.DataFrame(data)
+
+    
+    pio.write_html(df.to_html(), file='templates/table.html', auto_open=False)
+
+    
+    fig = go.Figure([go.Bar(x=data['Status'], y=data['Count'])])
+    pio.write_html(fig, file='templates/plot.html', auto_open=False)
+
+    
+    return render_template('result.html', passed=passed, blocked=blocked, failed=failed, no_tested=no_tested)
+
+@app.route('/', methods=['GET'])
+def home_get():
+    return render_template('index.html')
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+ 
+        self.setWindowTitle('Checklist App')
+        self.passed_label = QLabel('Passed:')
+        self.passed_edit = QLineEdit()
+        self.passed_edit.setValidator(QIntValidator())
+        self.blocked_label = QLabel('Blocked:')
+        self.blocked_edit = QLineEdit()
+        self.blocked_edit.setValidator(QIntValidator())
+        self.failed_label = QLabel('Failed:')
+        self.failed_edit = QLineEdit()
+        self.failed_edit.setValidator(QIntValidator())
+        self.not_tested_label = QLabel('Not Tested:')
+        self.not_tested_edit = QLineEdit()
+        self.not_tested_edit.setValidator(QIntValidator())
+        self.submit_button = QPushButton('Submit')
+        self.submit_button.clicked.connect(self.process_data)
+        self.table = QTableWidget()
+        self.table.setColumnCount(2)
+        self.table.setHorizontalHeaderLabels(['Status', 'Count'])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        
+        central_widget = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(self.passed_label)
+        layout.addWidget(self.passed_edit)
+        layout.addWidget(self.blocked_label)
+        layout.addWidget(self.blocked_edit)
+        layout.addWidget(self.failed_label)
+        layout.addWidget(self.failed_edit)
+        layout.addWidget(self.not_tested_label)
+        layout.addWidget(self.not_tested_edit)
+        layout.addWidget(self.submit_button)
+        layout.addWidget(self.table)
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
+
+    def process_data(self):
+        
+        passed = int(self.passed_edit.text())
+        blocked = int(self.blocked_edit.text())
+        failed = int(self.failed_edit.text())
+        no_tested = int(self.not_tested_edit.text())
+
+        
         data = {'Status': ['Passed', 'Blocked', 'Failed', 'Not Tested'], 'Count': [passed, blocked, failed, no_tested]}
         df = pd.DataFrame(data)
 
-        # Сохраняем данные в файл
-        pio.write_html(df.to_html(), file='templates/table.html', auto_open=False)
+        
+        pio.write_html(df.to_html(), file='table.html', auto_open=False)
 
-        # Строим график
+        
         fig = go.Figure([go.Bar(x=data['Status'], y=data['Count'])])
-        pio.write_html(fig, file='templates/plot.html', auto_open=False)
+        pio.write_html(fig, file='plot.html', auto_open=False)
 
-        # Отображаем результаты пользователю
-        return render_template('result.html', passed=passed, blocked=blocked, failed=failed, no_tested=no_tested)
-    else:
-        return render_template('index.html')
+        
+        self.table.setRowCount(4)
+        for i in range(4):
+            self.table.setItem(i, 0, QTableWidgetItem(data['Status'][i]))
+            self.table.setItem(i, 1, QTableWidgetItem(str(data['Count'][i])))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec_()
