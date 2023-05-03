@@ -40,7 +40,7 @@ import smtplib, ssl
 port = 465  # For SSL
 smtp_server = "smtp.gmail.com"
 sender_email = "okomarova@saber.games"  # Enter your address
-receiver_email = "receiver@gmail.com"  # Enter receiver address
+receiver_email = "okomarova@saber.games"  # Enter receiver address
 password = input("Type your password and press enter: ")
 message = """\
 Subject: Итоги чек-листа
