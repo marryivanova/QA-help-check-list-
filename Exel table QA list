@@ -1,0 +1,59 @@
+import openpyxl
+from openpyxl.chart import BarChart, Reference, Series
+
+# Создание новой таблицы Excel
+workbook = openpyxl.Workbook()
+sheet = workbook.active
+sheet.title = "Ответы на чек-лист"
+
+# Создание столбцов таблицы
+sheet['A1'] = "Вопрос"
+sheet['B1'] = "Ответ"
+
+# Заполнение таблицы данными из чек-листа
+answers = {"Вопрос 1": "Ответ 1", "Вопрос 2": "Ответ 2", "Вопрос 3": "Ответ 3"}
+row_num = 2
+for question, answer in answers.items():
+  sheet[f'A{row_num}'] = question
+  sheet[f'B{row_num}'] = answer
+  row_num += 1
+
+
+# Построение графика
+chart = BarChart()
+data = Reference(sheet, min_col=2, min_row=1, max_row=row_num)
+categories = Reference(sheet, min_col=1, min_row=2, max_row=row_num)
+chart.add_data(data)
+chart.set_categories(categories)
+chart.title = "Ответы на чек-лист"
+chart.x_axis.title = "Вопросы"
+chart.y_axis.title = "Количество ответов"
+sheet.add_chart(chart, "D1")
+
+
+# Сохранение таблицы в файл Excel
+workbook.save(filename="responses.xlsx")
+
+# Отправка данных составителю чек-листа по электронной почте
+import smtplib, ssl
+
+port = 465  # For SSL
+smtp_server = "smtp.gmail.com"
+sender_email = "okomarova@saber.games"  # Enter your address
+receiver_email = "receiver@gmail.com"  # Enter receiver address
+password = input("Type your password and press enter: ")
+message = """\
+Subject: Итоги чек-листа
+
+#Ответы на чек-лист обработаны и представлены в таблице Excel. Приложен график, отображающий количество ответов на каждый вопрос.
+
+#Во вложении находится файл responses.xlsx."""
+
+context = ssl.create_default_context()
+with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+    server.login(sender_email, password)
+    # Отправка письма с приложенным файлом
+    with open("responses.xlsx", "rb") as file:
+        file_data = file.read()
+        file_name = file.name
+    server.sendmail(sender_email, receiver_email, message, (file_name, file_data))
