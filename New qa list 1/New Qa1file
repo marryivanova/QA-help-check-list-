@@ -1,0 +1,172 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import matplotlib.pyplot as plt
+
+# Создание окна приложения
+window = tk.Tk()
+window.title("Приложение для обработки чек-листа")
+
+# Создание переменных для хранения ответов на вопросы
+var1 = tk.IntVar()
+var2 = tk.IntVar()
+var3 = tk.IntVar()
+var4 = tk.IntVar()
+
+# Обработка кнопки "Отправить" - получение ответов на вопросы и построение графика
+def submit():
+    answer1 = var1.get()
+    answer2 = var2.get()
+    answer3 = var3.get()
+    answer4 = var4.get()
+
+    # Проверка, выбран ли ответ на все вопросы
+    if answer1 == 0 or answer2 == 0 or answer3 == 0 or answer4 == 0:
+        messagebox.showwarning("Внимание!", "Пожалуйста, ответьте на все вопросы.")
+        return    # выход из функции при неполной заполненности ответов на вопросы
+
+    # Проверка, выбраны ли все третьи варианты ответов
+    if answer1 == answer2 == answer3 == answer4 == 3:
+        create_report_form()
+        return    # выход из функции при выборе третьего варианта ответа на все вопросы
+
+    # Создание списка ответов для последующей обработки
+    answers = [answer1, answer2, answer3, answer4]
+
+    # Построение графика
+    plt.bar(["Вопрос 1", "Вопрос 2", "Вопрос 3", "Вопрос 4"], answers)
+    plt.title("Результаты проверки")
+    plt.xlabel("Вопросы")
+    plt.ylabel("Ответы")
+    plt.show()
+
+# Функция для создания модального окна для заполнения формы баг-репорта
+def create_report_form():
+    # Создание модального окна
+    report_window = tk.Toplevel(window)
+    report_window.title("Пожалуйста, заполните форму баг-репорта")
+
+    # Создание виджетов для заполнения формы
+    question = "Какой баг появился у вас в приложении?"
+    
+    label_frame = tk.LabelFrame(report_window, text=question)
+    label_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    form_frame = tk.Frame(label_frame)
+    form_frame.pack(fill=tk.BOTH, expand=True)
+
+    title_label = tk.Label(form_frame, text="Название баг-репорта")
+    title_label.grid(row=0, column=0, sticky="W", padx=10, pady=5)
+    title_entry = tk.Entry(form_frame)
+    title_entry.grid(row=0, column=1, sticky="W", padx=10, pady=5)
+
+    platform_label = tk.Label(form_frame, text="Платформа")
+    platform_label.grid(row=1, column=0, sticky="W", padx=10, pady=5)
+    platform_entry = tk.Entry(form_frame)
+    platform_entry.grid(row=1, column=1, sticky="W", padx=10, pady=5)
+
+    steps_label = tk.Label(form_frame, text="Шаги для воспроизведения")
+    steps_label.grid(row=2, column=0, sticky="W", padx=10, pady=5)
+    steps_entry = tk.Text(form_frame, height=5)
+    steps_entry.grid(row=2, column=1, sticky="W", padx=10, pady=5)
+
+    expected_label = tk.Label(form_frame, text="Ожидаемый результат")
+    expected_label.grid(row=3, column=0, sticky="W", padx=10, pady=5)
+    expected_entry = tk.Entry(form_frame)
+    expected_entry.grid(row=3, column=1, sticky="W", padx=10, pady=5)
+
+    actual_label = tk.Label(form_frame, text="Фактический результат")
+    actual_label.grid(row=4, column=0, sticky="W", padx=10, pady=5)
+    actual_entry = tk.Entry(form_frame)
+    actual_entry.grid(row=4, column=1, sticky="W", padx=10, pady=5)
+
+    frequency_label = tk.Label(form_frame, text="Частота возникновения")
+    frequency_label.grid(row=5, column=0, sticky="W", padx=10, pady=5)
+    frequency_entry = tk.Entry(form_frame)
+    frequency_entry.grid(row=5, column=1, sticky="W", padx=10, pady=5)
+
+    additional_label = tk.Label(form_frame, text="Дополнительная информация")
+    additional_label.grid(row=6, column=0, sticky="W", padx=10, pady=5)
+    additional_entry = tk.Entry(form_frame)
+    additional_entry.grid(row=6, column=1, sticky="W", padx=10, pady=5)
+
+    # Обработка нажатия кнопки "Отправить" в модальном окне
+    def submit_report():
+        # Получение заполненных данных из виджетов
+        title = title_entry.get()
+        platform = platform_entry.get()
+        steps = steps_entry.get("1.0", tk.END).strip()   # strip() - удаление лишних пробелов и переносов строк
+        expected = expected_entry.get()
+        actual = actual_entry.get()
+        frequency = frequency_entry.get()
+        additional = additional_entry.get()
+
+        # Проверка, что все поля были заполнены
+        if not title or not platform or not steps or not expected or not actual or not frequency or not additional:
+            messagebox.showwarning("Внимание!", "Пожалуйста, заполните все поля.")
+            return    # выход из функции при неполной заполненности полей формы
+
+        # Создание текстового отчета в формате Markdown и вывод его в диалоговое окно
+        report = f"""**Название баг-репорта:** {title}
+
+**Платформа:** {platform}
+
+**Шаги для воспроизведения:**
+{steps}
+
+**Ожидаемый результат:** {expected}
+
+**Фактический результат:** {actual}
+
+**Частота возникновения:** {frequency}
+
+**Дополнительная информация:** {additional}"""
+
+        messagebox.showinfo("Спасибо за сообщение!", "Спасибо за отправку баг-репорта. Мы скоро его рассмотрим.")
+
+        # Закрытие модального окна баг-репорта
+        report_window.destroy()
+
+    # Создание кнопки "Отправить" в модальном окне
+    submit_btn = tk.Button(label_frame, text="Отправить", command=submit_report)
+    submit_btn.pack(pady=10)
+
+    # Установка размера модального окна больше, чем главного окна
+    report_window.geometry("600x600")
+
+def user_answer(create_report_form):
+    if user_answer == 3:  
+        create_report_form()
+
+user_answer(create_report_form)   
+
+# Создание виджетов
+question_frame1 = tk.LabelFrame(window, text="Последняя версия (Номер версии) успешно установлена на ПК", padx=10, pady=10, width=20, font=("Arial", 11, "bold"))
+question_frame1.pack()
+tk.Radiobutton(question_frame1, text="Passed", variable=var1, value=1).grid(row=0, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame1, text="Failed", variable=var1, value=2).grid(row=1, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame1, text="Свой вариант оставлю в Feedback", variable=var1, value=3).grid(row=2, column=0, pady=5, sticky="w")
+
+question_frame2 = tk.LabelFrame(window, text="Ручная закачки билда на ПК по клику на “Start Downloads”", padx=10, pady=10, width=20, font=("Arial", 11, "bold"))
+question_frame2.pack()
+tk.Radiobutton(question_frame2, text="Passed", variable=var2, value=1).grid(row=0, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame2, text="Failed", variable=var2, value=2).grid(row=1, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame2, text="Свой вариант оставлю в Feedback", variable=var2, value=3).grid(row=2, column=0, pady=5, sticky="w")
+
+question_frame3 = tk.LabelFrame(window, text="Подписка на ветку проекта", padx=10, pady=10, width=20, font=("Arial", 11, "bold"))
+question_frame3.pack() 
+tk.Radiobutton(question_frame3, text="Passed", variable=var3,value=1).grid(row=0, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame3, text="Failed", variable=var3, value=2).grid(row=1, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame3, text="Свой вариант оставлю в Feedback", variable=var3, value=3).grid(row=2, column=0, pady=5, sticky="w")
+
+question_frame4 = tk.LabelFrame(window, text="Удалить с Delivery в секции “Downloads” скачанный билд", padx=10, pady=10, width=20, font=("Arial", 11, "bold"))
+question_frame4.pack() 
+tk.Radiobutton(question_frame4, text="Passed", variable=var4, value=1).grid(row=0, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame4, text="Failed", variable=var4, value=2).grid(row=1, column=0, pady=5, sticky="w")
+tk.Radiobutton(question_frame4, text="Свой вариант оставлю в Feedback", variable=var4, value=3).grid(row=2, column=0, pady=5, sticky="w")
+
+submit_button = tk.Button(window, text="Отправить", command=submit) 
+submit_button.pack(pady=10)
+
+window.minsize(600, 600)
+
+window.mainloop()
