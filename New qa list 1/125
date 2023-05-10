@@ -1,0 +1,93 @@
+from tkinter import *
+from tkinter import messagebox
+
+class ChecklistForm:
+    def __init__(self, master):
+        self.master = master
+        master.title("Check list")
+
+        # Создаем переменные IntVar и StringVar для ответов на вопросы
+        self.q1 = IntVar(value=0)
+        self.q2 = IntVar(value=0)
+        self.q3 = IntVar(value=0)
+        self.q4 = IntVar(value=0)
+        self.q5 = StringVar(value="")
+
+        # Создаем элементы формы
+        Label(master, text="Вопросы в чек-листе:", font=("Arial", 14)).grid(row=0, column=0, sticky=W, padx=15, pady=10)
+
+        Label(master, text="1. Последняя версия (Номер версии) успешно скачана на ПК:", font=("Arial", 12)).grid(row=1, column=0, sticky=W, padx=15, pady=5)
+        Radiobutton(master, text="Passed", variable=self.q1, value=1, font=("Arial", 12)).grid(row=2, column=0, sticky=W, padx=35)
+        Radiobutton(master, text="Failed", variable=self.q1, value=0, font=("Arial", 12)).grid(row=3, column=0, sticky=W, padx=35)
+
+        Label(master, text="2. Ручная закачка билда на ПК по клику на “Start Downloads”:", font=("Arial", 12)).grid(row=4, column=0, sticky=W, padx=15, pady=5)
+        Radiobutton(master, text="Passed", variable=self.q2, value=1, font=("Arial", 12)).grid(row=5, column=0, sticky=W, padx=35)
+        Radiobutton(master, text="Failed", variable=self.q2, value=0, font=("Arial", 12)).grid(row=6, column=0, sticky=W, padx=35)
+
+        Label(master, text="3. Подписка на ветку проекта: Подписаться на ветку проекта = билды актуальной даты скачиваются на ПК:", font=("Arial", 12)).grid(row=7, column=0, sticky=W, padx=15, pady=5)
+        Radiobutton(master, text="Passed", variable=self.q3, value=1, font=("Arial", 12)).grid(row=8, column=0, sticky=W, padx=35)
+        Radiobutton(master, text="Failed", variable=self.q3, value=0, font=("Arial", 12)).grid(row=9, column=0, sticky=W, padx=35)
+
+        Label(master, text="4. Удалить с Delivery в секции 'Downloads' скачанный билд:", font=("Arial", 12)).grid(row=10, column=0, sticky=W, padx=15, pady=5)
+        Radiobutton(master, text="Passed", variable=self.q4, value=1, font=("Arial", 12)).grid(row=11, column=0, sticky=W, padx=35)
+        Radiobutton(master, text="Failed", variable=self.q4, value=0, font=("Arial", 12)).grid(row=12, column=0, sticky=W, padx=35)
+
+        Label(master, text="5. Оцените качество загружаемой версии (укажите Passed или Filed, или впишите свой вариант):", font=("Arial", 12)).grid(row=13, column=0, sticky=W, padx=15, pady=5)
+        Radiobutton(master, text="Passed", variable=self.q5, value="Passed", font=("Arial", 12)).grid(row=14, column=0, sticky=W, padx=35)
+        Radiobutton(master, text="Failed", variable=self.q5, value="Filed", font=("Arial", 12)).grid(row=15, column=0, sticky=W, padx=35)
+        Radiobutton(master, text="Другое", variable=self.q5, value="Other", font=("Arial", 12), command=self.enable_entry).grid(row=16, column=0, sticky=W, padx=35)
+
+        self.entry = Entry(master, textvariable=self.q5, state=DISABLED, font=("Arial", 12))
+        self.entry.grid(row=17, column=0, sticky=W, padx=35)
+
+        Button(master, text="Отправить результаты", command=self.submit_results, bg="green", fg="white", font=("Arial", 12)).grid(row=18, column=0, padx=15, pady=10, sticky=W)
+        Button(master, text="Сбросить", command=self.reset_form, bg="red", fg="white", font=("Arial", 12)).grid(row=18, column=0, padx=15, pady=10, sticky=E)
+
+    def submit_results(self):
+        results = []
+
+        # Добавляем ответы на вопросы в список результатов
+        results.append("1. Последняя версия (Номер версии) успешно скачана на ПК: {}".format(self.answer(self.q1)))
+        results.append("2. Ручная закачка билда на ПК по клику на “Start Downloads”: {}".format(self.answer(self.q2)))
+        results.append("3. Подписка на ветку проекта: Подписаться на ветку проекта = билды актуальной даты скачиваются на ПК: {}".format(self.answer(self.q3)))
+        results.append("4. Удалить с Delivery в секции “Downloads” скачанный билд: {}".format(self.answer(self.q4)))
+ # Обрабатываем вариант "Другое" в пятом вопросе
+        if self.q5.get() == "Other":
+            # Удаляем лишние пробелы в ответе
+            answer = self.entry.get().strip()
+            results.append(
+                "5. Оцените качество загружаемой версии (укажите Passed или Filed, или впишите свой вариант): {}".format(
+                    answer))
+        else:
+            results.append(
+                "5. Оцените качество загружаемой версии (укажите Passed или Filed, или впишите свой вариант): {}".format(
+                    self.answer(self.q5)))
+
+        # Выводим результаты на экран
+        messagebox.showinfo("Результаты чеклиста", "\n".join(results))
+
+    def reset_form(self):
+        # Сбрасываем все переменные
+        self.q1.set(0)
+        self.q2.set(0)
+        self.q3.set(0)
+        self.q4.set(0)
+        self.q5.set("")
+        self.entry.config(state=DISABLED)
+
+    def enable_entry(self):
+        self.entry.config(state=NORMAL)
+
+    def answer(self, var):
+        if var.get() == 1:
+            return "Да"
+        elif var.get() == 0:
+            return "Нет"
+        else:
+            return "Нет ответа"
+
+
+# Создаем экземпляр класса ChecklistForm
+root = Tk()
+my_gui = ChecklistForm(root)
+root.mainloop()
