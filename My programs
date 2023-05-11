@@ -1,0 +1,26 @@
+from tkinter import *
+from tkinter import messagebox
+root = Tk()
+def count_vowels():
+    vowels = ['a','i','e','o','u'] 
+    words = entry.get() 
+    found = [] 
+    for letter in words: 
+        if letter.isalpha() and not letter.isascii(): 
+            messagebox.showerror("Ошибка", "Вы ввели буквы на русском!") 
+            break 
+        if letter in vowels: 
+            if letter not in found: found.append(letter) 
+            for vowel in found: print(vowel)
+        if letter in vowels: 
+            if letter not in found: found.append(letter) 
+            result_label.configure(text=f"Найдены гласные буквы: {', '.join(found)}")
+
+root.geometry("400x200")
+entry = Entry(root, width=30, font=("Arial", 14)) 
+entry.pack(pady=10)
+button = Button(root, text="Посчитать гласные", command=count_vowels, font=("Arial", 14)) 
+button.pack()
+result_label = Label(root, text="", font=("Arial", 14)) 
+result_label.pack(pady=10)
+root.mainloop()
